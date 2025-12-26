@@ -167,3 +167,4 @@ Makefile.release
 /python/sliding_median_window.c
 /python/test.py
 /python/venv
+/python/.DS_STORE
