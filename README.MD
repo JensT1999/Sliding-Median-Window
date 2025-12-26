@@ -12,6 +12,7 @@ This library allows efficient computation of the median over a sliding window in
 - Sliding median computation for arbitrary window sizes
 - Optimized for performance using median networks and double-heaps in C
 - Python interface via Cython for easy integration with NumPy
+- Please note: NaN values in the input array are ignored during computation. They do not affect the calculated median of the remaining valid values.
 
 ## Installation
 ```bash
@@ -20,7 +21,21 @@ git clone https://github.com/JensT1999/CSlidingWindowMedian.git
 
 ## Usage
 ### Python
-First, setup the Python binding by running the following command in the python directoy:
+If you want to use the **sliding median window** in python you need to install setuptools and cython. <br>
+To install both go to your python environment and type:
+```bash
+pip install setuptools cython
+```
+
+In Python the **sliding median window** works with NumPy arrays. This is the reason you have to install
+NumPy too by running the command:<br>
+```bash
+pip install numpy
+```
+
+After installing everything that is needed skip to the python directory of this project. <br>
+Note: Stay in your Python environment! (Also if you use a virtual python environment). <br>
+Setup the Python binding by running the following command in the python directoy of this project:
 ```bash
 python setup.py build_ext --inplace
 ```
@@ -31,13 +46,19 @@ import numpy as np
 from sliding_median_window import sliding_median_window
 ```
 
-After that use the sliding window with the following syntax:
+After that use the **sliding median window** with the following syntax:
 ```python
 sliding_median_window(input_array (NumPy Array),
     windowSize,
     steps,
     output_array (Numpy Array))
 ```
+
+Explanation of input parameters:
+- input_array: NumPy array containing your data.
+- windowSize: Size of the sliding window.
+- steps: Step size for the window (the function computes a result every steps elements).
+- output_array: NumPy array to store the results. Any existing data in this array will be overwritten.
 
 Example usage:
 ```python
@@ -77,7 +98,8 @@ Please note that in both implementations the size of the result array should be 
 <b>((input_array_length - windowSize) / steps + 1)
 
 ### Makefile for C Usage
-Due to the project structure, using a Makefile is recommended. An example Makefile is shown below:
+Due to the project structure, no Makefile is included by default.
+Below is an example Makefile that can be used to compile the project in C:
 ```makefile
 CC	 = gcc
 CFLAGS	 = -O3 -march=native -flto -Wall -Wextra -std=c99 -Iinclude -Isrc

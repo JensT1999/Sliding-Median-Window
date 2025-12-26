@@ -157,6 +157,7 @@ ipch/
 .editorconfig
 
 # Own Files
+.DS_STORE
 main.c
 outDebug
 outRelease
