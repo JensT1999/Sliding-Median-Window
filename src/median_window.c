@@ -4,7 +4,7 @@
  * @brief This file implements a double-heap sliding median window.
  * @note The implementation follows the same general concept as other implementations,
  *       such as Bottleneck (https://github.com/pydata/bottleneck).
- * @version 0.1
+ * @version 0.2
  * @date 2025-12-13
  *
  * @copyright Copyright (c) 2025

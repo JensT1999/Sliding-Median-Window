@@ -17,7 +17,8 @@ static void set_sort_and_calc_function(Tiny_MedianWindow *window);
 static void sort_and_calc_median2(double *restrict inputStartPtr, double *restrict result);
 static void sort_and_calc_median3(double *restrict inputStartPtr, double *restrict result);
 static void sort_and_calc_median4(double *restrict inputStartPtr, double *restrict result);
-static void sort_and_calc_median5(double *restrict inputStartPtr, double *restrict result);
+static void sort_and_calc_median5(double *restrict inputStartPtr, double *restrict result,
+    bool ignoreNaNWindows);
 static void sort_and_calc_median6(double *restrict inputStartPtr, double *restrict result);
 static void sort_and_calc_median7(double *restrict inputStartPtr, double *restrict result);
 static void sort_and_calc_median8(double *restrict inputStartPtr, double *restrict result);
@@ -25,7 +26,7 @@ static inline void values_swap(double *restrict a, double *restrict b);
 static inline double value_get(double *restrict value);
 
 void tiny_medianwindow_initialize(char **memory, size_t windowSize,
-    size_t steps, Tiny_MedianWindow **window) {
+    size_t steps, bool ignoreNaNWindows, Tiny_MedianWindow **window) {
     Tiny_MedianWindow *targetWindow = (Tiny_MedianWindow* ) __builtin_assume_aligned(*memory, STD_ALIGNMENT);
     targetWindow->windowSize = windowSize;
     targetWindow->steps = steps;
@@ -33,6 +34,7 @@ void tiny_medianwindow_initialize(char **memory, size_t windowSize,
     targetWindow->tailPtr = 0;
     targetWindow->headPtr = 0;
     set_sort_and_calc_function(targetWindow);
+    targetWindow->ignoreNaNWindows = ignoreNaNWindows;
     *window = targetWindow;
 }
 
@@ -111,7 +113,9 @@ static void sort_and_calc_median4(double *restrict inputStartPtr, double *restri
     *result = ((value1 + value2) / 2);
 }
 
-static void sort_and_calc_median5(double *restrict inputStartPtr, double *restrict result) {
+static void sort_and_calc_median5(double *restrict inputStartPtr, double *restrict result,
+    bool ignoreNaNWindows) {
+
     double value0 = value_get(inputStartPtr++);
     double value1 = value_get(inputStartPtr++);
     double value2 = value_get(inputStartPtr++);
