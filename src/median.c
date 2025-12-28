@@ -1,12 +1,14 @@
 #include "median.h"
 
+#include <stdio.h>
+
 static inline bool median_window_full(MedianWindow *window);
 static inline bool median_window_steps_reached(MedianWindow *window);
 static inline bool tiny_medianwindow_full(Tiny_MedianWindow *window);
 static inline bool tiny_medianwindow_steps_reached(Tiny_MedianWindow *window);
 
 bool sliding_heap_medianwindow(double *restrict array, size_t length, size_t windowSize, size_t steps,
-    double *restrict result) {
+    bool ignoreNaNWindows, double *restrict result) {
     if(!valid_window(array, length, windowSize, steps, result))
         return false;
 
@@ -17,7 +19,7 @@ bool sliding_heap_medianwindow(double *restrict array, size_t length, size_t win
 
     char *startMemPtr = memory;
     MedianWindow *window;
-    medianwindow_initialize(&memory, windowSize, steps, &window);
+    medianwindow_initialize(&memory, windowSize, steps, ignoreNaNWindows, &window);
 
     for(size_t i = 0; i < length; i++) {
         if(median_window_full(window)) {

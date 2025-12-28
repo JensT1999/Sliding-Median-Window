@@ -215,5 +215,5 @@ static inline void values_swap(double *restrict a, double *restrict b) {
 
 static inline double value_get(double *restrict value) {
     const double v = *value;
-    return ((v != v) || (v == INFINITY) || (v == -INFINITY)) ? DBL_MAX : v;
+    return (!isfinite(v)) ? DBL_MAX : v;
 }

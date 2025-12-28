@@ -18,6 +18,7 @@
  * @param outputArray - the output sequence
  * @return - true on success; otherwise false
  */
-bool sliding_medianwindow(double *inputArray, size_t length, size_t windowSize, size_t steps, double *outputArray);
+bool sliding_medianwindow(double *inputArray, size_t length, size_t windowSize, size_t steps,
+    bool ignoreNaNWindows, double *outputArray);
 
 #endif

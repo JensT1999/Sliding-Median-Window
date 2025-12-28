@@ -8,7 +8,7 @@
 #include "window_helpers.h"
 
 bool sliding_heap_medianwindow(double *restrict array, size_t length, size_t windowSize, size_t steps,
-    double *restrict result);
+    bool ignoreNaNWindows, double *restrict result);
 
 bool sliding_tiny_medianwindow(double *restrict array, size_t length, size_t windowSize,
     size_t steps, double *restrict result);

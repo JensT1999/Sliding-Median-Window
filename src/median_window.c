@@ -25,8 +25,14 @@ static void minheap_smallestChild(HeapNode *restrict *restrict minHeapNodes, siz
     size_t *restrict childPosition);
 static void heaps_rebalance(MedianWindow *restrict window);
 static inline size_t heap_calculate_children(size_t heapLength, size_t position);
+static inline bool heaps_can_rebalance(MedianWindow *restrict window);
 
-void medianwindow_initialize(char **memory, size_t windowSize, size_t steps, MedianWindow **window) {
+static inline void medianwindow_maxheap_root_to_minheap_root(MedianWindow *restrict window);
+static inline void medianwindow_minheap_root_to_maxheap_root(MedianWindow *restrict window);
+static inline void medianwindow_put_spc_number(MedianWindow *restrict window, HeapNode *restrict targetNode);
+
+void medianwindow_initialize(char **memory, size_t windowSize, size_t steps,
+    bool ignoreNaNWindows, MedianWindow **window) {
     MedianWindow *resultWindow = (MedianWindow* ) __builtin_assume_aligned(*memory, STD_ALIGNMENT);
     *memory += SIZE_OF_MEDIANWINDOW;
 
@@ -57,29 +63,44 @@ void medianwindow_initialize(char **memory, size_t windowSize, size_t steps, Med
     resultWindow->head = NULL;
     resultWindow->tail = NULL;
     resultWindow->nodes = nodeDataStartingNode;
+    resultWindow->spcNumbers = 0;
+    resultWindow->ignoreNaNWindows = ignoreNaNWindows;
     *window = resultWindow;
 }
 
 void medianwindow_addNew(MedianWindow *restrict window, double value) {
-    if(!isfinite(value))
-        return;
-
     HeapNode *inputNode = &(window->nodes[window->currentSize]);
     inputNode->value = value;
+    const bool isNaN = isnan(value);
 
-    if(__builtin_expect((window->maxHeapLength == 0), 0)) {
-        maxheap_put(window, inputNode);
+
+    if((window->maxHeapLength == 0) &&
+        (window->spcNumbers == 0)) {
+        if(isNaN)
+            medianwindow_put_spc_number(window, inputNode);
+        else
+            maxheap_put(window, inputNode);
         window->tail = inputNode;
     } else {
         if(window->maxHeapLength > window->minHeapLength) {
-            const size_t inputPosition = minheap_put(window, inputNode);
-            minheap_heapifyUp(window->minHeap, inputPosition);
+            if(isNaN)
+                medianwindow_put_spc_number(window, inputNode);
+            else {
+                const size_t inputPosition = minheap_put(window, inputNode);
+                minheap_heapifyUp(window->minHeap, inputPosition);
+            }
         } else {
-            const size_t inputPosition = maxheap_put(window, inputNode);
-            maxheap_heapifyUp(window->maxHeap, inputPosition);
+            if(isNaN)
+                medianwindow_put_spc_number(window, inputNode);
+            else {
+                const size_t inputPosition = maxheap_put(window, inputNode);
+                maxheap_heapifyUp(window->maxHeap, inputPosition);
+            }
         }
 
-        heaps_rebalance(window);
+        if(heaps_can_rebalance(window))
+            heaps_rebalance(window);
+
         window->head->next = inputNode;
     }
 
@@ -88,34 +109,113 @@ void medianwindow_addNew(MedianWindow *restrict window, double value) {
 }
 
 void medianwindow_updateOld(MedianWindow *restrict window, double value) {
-    if(!isfinite(value))
-        return;
-
     HeapNode *tailNode = window->tail;
-    const double oldValue = tailNode->value;
-    tailNode->value = value;
     window->tail = tailNode->next;
     window->head->next = tailNode;
     window->head = tailNode;
 
-    if(tailNode->type == MAX_HEAP) {
-        if(value > oldValue) {
-            maxheap_heapifyUp(window->maxHeap, tailNode->position);
-            heaps_rebalance(window);
+    if((tailNode->isNaN) && (isnan(value)))
+        return;
+    else if(tailNode->isNaN) {
+        tailNode->value = value;
+        window->spcNumbers -= 1;
+
+        if(window->maxHeapLength > window->minHeapLength) {
+            const size_t inputPosition = minheap_put(window, tailNode);
+            minheap_heapifyUp(window->minHeap, inputPosition);
         } else {
-            maxheap_heapifyDown(window->maxHeap, window->maxHeapLength, tailNode->position);
+            const size_t inputPosition = maxheap_put(window, tailNode);
+            maxheap_heapifyUp(window->maxHeap, inputPosition);
         }
-    } else {
-        if(value < oldValue) {
-            minheap_heapifyUp(window->minHeap, tailNode->position);
+
+        if(heaps_can_rebalance(window))
             heaps_rebalance(window);
+
+    } else {
+        const double oldValue = tailNode->value;
+        const size_t inputPosition = tailNode->position;
+        const HeapType tailNodeHeapType = tailNode->type;
+        double newValue = value;
+        bool replaced = false;
+        bool removed = false;
+        tailNode->value = value;
+
+        if(isnan(value)) {
+            if(tailNode->type == MAX_HEAP) {
+                HeapNode *lastNode = window->maxHeap[window->maxHeapLength - 1];
+                window->maxHeapLength -= 1;
+
+                if(lastNode != tailNode) {
+                    lastNode->position = inputPosition;
+                    window->maxHeap[inputPosition] = lastNode;
+                    newValue = lastNode->value;
+                    replaced = true;
+                }
+
+                medianwindow_put_spc_number(window, tailNode);
+            } else {
+                HeapNode *lastNode = window->minHeap[window->minHeapLength - 1];
+                window->minHeapLength -= 1;
+
+                if(lastNode != tailNode) {
+                    lastNode->position = inputPosition;
+                    window->minHeap[inputPosition] = lastNode;
+                    newValue = lastNode->value;
+                    replaced = true;
+                }
+
+                medianwindow_put_spc_number(window, tailNode);
+            }
+            removed = true;
+        } else
+            replaced = true;
+
+        if(!replaced)
+            return;
+
+        if(tailNodeHeapType == MAX_HEAP) {
+            if(newValue > oldValue) {
+                maxheap_heapifyUp(window->maxHeap, inputPosition);
+
+                if(heaps_can_rebalance(window))
+                    heaps_rebalance(window);
+            } else {
+                maxheap_heapifyDown(window->maxHeap, window->maxHeapLength, inputPosition);
+            }
         } else {
-            minheap_heapifyDown(window->minHeap, window->minHeapLength, tailNode->position);
+            if(newValue < oldValue) {
+                minheap_heapifyUp(window->minHeap, inputPosition);
+
+                if(heaps_can_rebalance(window))
+                    heaps_rebalance(window);
+            } else {
+                minheap_heapifyDown(window->minHeap, window->minHeapLength, inputPosition);
+            }
+        }
+
+        if(removed) {
+            if(window->maxHeapLength > (window->minHeapLength + 1)) {
+                medianwindow_maxheap_root_to_minheap_root(window);
+            } else if(window->minHeapLength > window->maxHeapLength) {
+                medianwindow_minheap_root_to_maxheap_root(window);
+            }
         }
     }
 }
 
 void medianwindow_result(MedianWindow *restrict window, double *restrict resultDest) {
+    if(window->ignoreNaNWindows) {
+        if(window->spcNumbers > 0) {
+            *resultDest = NAN;
+            return;
+        }
+    }
+
+    if((window->maxHeapLength == 0) && (window->spcNumbers > 0)) {
+        *resultDest = NAN;
+        return;
+    }
+
     if(window->maxHeapLength != window->minHeapLength) {
         *resultDest = window->maxHeap[0]->value;
         return;
@@ -134,6 +234,7 @@ static inline size_t maxheap_put(MedianWindow *restrict window, HeapNode *restri
     const size_t inputPosition = window->maxHeapLength;
     targetNode->position = inputPosition;
     targetNode->type = MAX_HEAP;
+    targetNode->isNaN = false;
     window->maxHeap[inputPosition] = targetNode;
     window->maxHeapLength += 1;
     return inputPosition;
@@ -204,6 +305,7 @@ static inline size_t minheap_put(MedianWindow *restrict window, HeapNode *restri
     const size_t inputPosition = window->minHeapLength;
     targetNode->position = inputPosition;
     targetNode->type = MIN_HEAP;
+    targetNode->isNaN = false;
     window->minHeap[inputPosition] = targetNode;
     window->minHeapLength += 1;
     return inputPosition;
@@ -290,4 +392,47 @@ static inline size_t heap_calculate_children(size_t heapLength, size_t position)
     const size_t maxChildPosition = HEAP_CHILDREN_FORMULAR(position, K_ARY_HEAP_CHILDREN);
     return (minChildPosition >= heapLength) ? 0 : (maxChildPosition >= heapLength) ?
         (heapLength - minChildPosition) : ((maxChildPosition - minChildPosition) + 1);
+}
+
+static inline bool heaps_can_rebalance(MedianWindow *restrict window) {
+    return ((window->maxHeapLength > 0) && (window->minHeapLength > 0));
+}
+
+static inline void medianwindow_maxheap_root_to_minheap_root(MedianWindow *restrict window) {
+    HeapNode *lastNode = window->maxHeap[window->maxHeapLength - 1];
+    window->maxHeapLength -= 1;
+    HeapNode *rootNode = window->maxHeap[0];
+
+    if(lastNode != rootNode) {
+        lastNode->position = 0;
+        window->maxHeap[0] = lastNode;
+        maxheap_heapifyDown(window->maxHeap, window->maxHeapLength, 0);
+    }
+
+    const size_t inputPosition = minheap_put(window, rootNode);
+    minheap_heapifyUp(window->minHeap, inputPosition);
+    heaps_rebalance(window);
+}
+
+static inline void medianwindow_minheap_root_to_maxheap_root(MedianWindow *restrict window) {
+    HeapNode *lastNode = window->minHeap[window->minHeapLength - 1];
+    window->minHeapLength -= 1;
+    HeapNode *rootNode = window->minHeap[0];
+
+    if(lastNode != rootNode) {
+        lastNode->position = 0;
+        window->minHeap[0] = lastNode;
+        minheap_heapifyDown(window->minHeap, window->minHeapLength, 0);
+    }
+
+    const size_t inputPosition = maxheap_put(window, rootNode);
+    maxheap_heapifyUp(window->maxHeap, inputPosition);
+    heaps_rebalance(window);
+}
+
+static inline void medianwindow_put_spc_number(MedianWindow *restrict window, HeapNode *restrict targetNode) {
+    targetNode->position = SPC_NUMBER_INPUT_POSITION;
+    targetNode->type = SPC_NUMBER;
+    targetNode->isNaN = true;
+    window->spcNumbers += 1;
 }
