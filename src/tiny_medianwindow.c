@@ -31,13 +31,11 @@ static void sort_and_calc_median7_nan_handle(double *restrict inputStartPtr, dou
 static void sort_and_calc_median8(double *restrict inputStartPtr, double *restrict result);
 static void sort_and_calc_median8_nan_handle(double *restrict inputStartPtr, double *restrict result);
 static inline void values_swap(double *restrict a, double *restrict b);
+static inline void values_build_nan_free_array(double *restrict inputStartPtr, size_t length, size_t *nanCount,
+    double *output);
+static inline void values_build_array_handle_nan(double *restrict inputStartPtr, size_t length, bool *nanInside,
+    double *output);
 
-static inline void values_build_nan_array(double *restrict values, size_t length, bool *restrict nanArray,
-    size_t *nanCount);
-static inline void values_translate_nan_array(double *restrict values, size_t length, bool *restrict nanArray,
-    double *validValues);
-
-static inline void median_network_select(size_t validNum, double *restrict values);
 static inline void median_network_2(double *restrict values);
 static inline void median_network_3(double *restrict values);
 static inline void median_network_4(double *restrict values);
@@ -126,9 +124,10 @@ static void sort_and_calc_median2(double *restrict inputStartPtr, double *restri
     values[0] = *(inputStartPtr++);
     values[1] = *(inputStartPtr++);
 
-    bool nanArray[WINDOW_SIZE_2] = {false, false};
-    size_t nanCount = 0;
-    values_build_nan_array(values, WINDOW_SIZE_2, nanArray, &nanCount);
+    const bool nan0 = isnan(values[0]);
+    const bool nan1 = isnan(values[1]);
+    const size_t nanCount = (nan0 + nan1);
+
     if(nanCount == 0) {
         median_network_2(values);
         *result = ((values[0] + values[1]) / 2);
@@ -138,9 +137,7 @@ static void sort_and_calc_median2(double *restrict inputStartPtr, double *restri
         return;
     }
 
-    double validValues[WINDOW_SIZE_2];
-    values_translate_nan_array(values, WINDOW_SIZE_2, nanArray, validValues);
-    *result = validValues[0];
+    *result = (!nan0) ? values[0] : values[1];
 }
 
 static void sort_and_calc_median2_nan_handle(double *restrict inputStartPtr, double *restrict result) {
@@ -164,9 +161,10 @@ static void sort_and_calc_median3(double *restrict inputStartPtr, double *restri
     for(size_t i = 0; i < WINDOW_SIZE_3; i++)
         values[i] = *(inputStartPtr++);
 
-    bool nanArray[WINDOW_SIZE_3] = {false, false, false};
-    size_t nanCount = 0;
-    values_build_nan_array(values, WINDOW_SIZE_3, nanArray, &nanCount);
+    const bool nan0 = isnan(values[0]);
+    const bool nan1 = isnan(values[1]);
+    const bool nan2 = isnan(values[2]);
+    const size_t nanCount = (nan0 + nan1 + nan2);
     if(nanCount == 0) {
         median_network_3(values);
         *result = values[1];
@@ -176,16 +174,11 @@ static void sort_and_calc_median3(double *restrict inputStartPtr, double *restri
         return;
     }
 
-    double validValues[WINDOW_SIZE_3];
-    values_translate_nan_array(values, WINDOW_SIZE_3, nanArray, validValues);
-    const size_t validNum = (WINDOW_SIZE_3 - nanCount);
-    if(validNum > 1)
-        median_network_2(validValues);
+    if((!nan0) && (!nan1)) { *result = ((values[0] + values[1]) / 2); return; }
+    if((!nan0) && (!nan2)) { *result = ((values[0] + values[2]) / 2); return; }
+    if((!nan1) && (!nan2)) { *result = ((values[1] + values[2]) / 2); return; }
 
-    const size_t middle = (validNum / 2);
-    *result = ((validNum % 2) == 0) ?
-        ((validValues[middle - 1] + validValues[middle]) / 2) :
-        ((validValues[middle]));
+    *result = (!nan0) ? values[0] : (!nan1) ? values[1] : values[2];
 }
 
 static void sort_and_calc_median3_nan_handle(double *restrict inputStartPtr, double *restrict result) {
@@ -206,12 +199,8 @@ static void sort_and_calc_median3_nan_handle(double *restrict inputStartPtr, dou
 
 static void sort_and_calc_median4(double *restrict inputStartPtr, double *restrict result) {
     double values[WINDOW_SIZE_4];
-    for(size_t i = 0; i < WINDOW_SIZE_4; i++)
-        values[i] = *(inputStartPtr++);
-
-    bool nanArray[WINDOW_SIZE_4] = {false, false, false, false};
     size_t nanCount = 0;
-    values_build_nan_array(values, WINDOW_SIZE_4, nanArray, &nanCount);
+    values_build_nan_free_array(inputStartPtr, WINDOW_SIZE_4, &nanCount, values);
     if(nanCount == 0) {
         median_network_4(values);
         *result = ((values[1] + values[2]) / 2);
@@ -221,16 +210,18 @@ static void sort_and_calc_median4(double *restrict inputStartPtr, double *restri
         return;
     }
 
-    double validValues[WINDOW_SIZE_4];
-    values_translate_nan_array(values, WINDOW_SIZE_4, nanArray, validValues);
     const size_t validNum = (WINDOW_SIZE_4 - nanCount);
-    if(validNum > 1)
-        median_network_select(validNum, validValues);
+    if(validNum == WINDOW_SIZE_3) {
+        median_network_3(values);
+        *result = values[1];
+        return;
+    } else if(validNum == WINDOW_SIZE_2) {
+        median_network_2(values);
+        *result = ((values[0] + values[1]) / 2);
+        return;
+    }
 
-    const size_t middle = (validNum / 2);
-    *result = ((validNum % 2) == 0) ?
-        ((validValues[middle - 1] + validValues[middle]) / 2) :
-        ((validValues[middle]));
+    *result = values[0];
 }
 
 static void sort_and_calc_median4_nan_handle(double *restrict inputStartPtr, double *restrict result) {
@@ -251,12 +242,8 @@ static void sort_and_calc_median4_nan_handle(double *restrict inputStartPtr, dou
 
 static void sort_and_calc_median5(double *restrict inputStartPtr, double *restrict result) {
     double values[WINDOW_SIZE_5];
-    for(size_t i = 0; i < WINDOW_SIZE_5; i++)
-        values[i] = *(inputStartPtr++);
-
-    bool nanArray[WINDOW_SIZE_5] = {false, false, false, false, false};
     size_t nanCount = 0;
-    values_build_nan_array(values, WINDOW_SIZE_5, nanArray, &nanCount);
+    values_build_nan_free_array(inputStartPtr, WINDOW_SIZE_5, &nanCount, values);
     if(nanCount == 0) {
         median_network_5(values);
         *result = values[2];
@@ -266,25 +253,30 @@ static void sort_and_calc_median5(double *restrict inputStartPtr, double *restri
         return;
     }
 
-    double validValues[WINDOW_SIZE_5];
-    values_translate_nan_array(values, WINDOW_SIZE_5, nanArray, validValues);
     const size_t validNum = (WINDOW_SIZE_5 - nanCount);
-    if(validNum > 1)
-        median_network_select(validNum, validValues);
+    if(validNum == WINDOW_SIZE_4) {
+        median_network_4(values);
+        *result = ((values[1] + values[2]) / 2);
+        return;
+    } else if(validNum == WINDOW_SIZE_3) {
+        median_network_3(values);
+        *result = values[1];
+        return;
+    } else if(validNum == WINDOW_SIZE_2) {
+        median_network_2(values);
+        *result = ((values[0] + values[1]) / 2);
+        return;
+    }
 
-    const size_t middle = (validNum / 2);
-    *result = ((validNum % 2) == 0) ?
-        ((validValues[middle - 1] + validValues[middle]) / 2) :
-        ((validValues[middle]));
+    *result = values[0];
 }
 
 static void sort_and_calc_median5_nan_handle(double *restrict inputStartPtr, double *restrict result) {
     double values[WINDOW_SIZE_5];
-    for(size_t i = 0; i < WINDOW_SIZE_5; i++)
-        values[i] = *(inputStartPtr++);
+    bool nanInside = false;
+    values_build_array_handle_nan(inputStartPtr, WINDOW_SIZE_5, &nanInside, values);
 
-    if((isnan(values[0])) || (isnan(values[1])) || (isnan(values[2])) ||
-        (isnan(values[3])) || (isnan(values[4]))) {
+    if(nanInside) {
         *result = NAN;
         return;
     }
@@ -297,12 +289,8 @@ static void sort_and_calc_median5_nan_handle(double *restrict inputStartPtr, dou
 
 static void sort_and_calc_median6(double *restrict inputStartPtr, double *restrict result) {
     double values[WINDOW_SIZE_6];
-    for(size_t i = 0; i < WINDOW_SIZE_6; i++)
-        values[i] = *(inputStartPtr++);
-
-    bool nanArray[WINDOW_SIZE_6] = {false, false, false, false, false, false};
     size_t nanCount = 0;
-    values_build_nan_array(values, WINDOW_SIZE_6, nanArray, &nanCount);
+    values_build_nan_free_array(inputStartPtr, WINDOW_SIZE_6, &nanCount, values);
     if(nanCount == 0) {
         median_network_6(values);
         *result = ((values[2] + values[3]) / 2);
@@ -312,25 +300,34 @@ static void sort_and_calc_median6(double *restrict inputStartPtr, double *restri
         return;
     }
 
-    double validValues[WINDOW_SIZE_6];
-    values_translate_nan_array(values, WINDOW_SIZE_6, nanArray, validValues);
     const size_t validNum = (WINDOW_SIZE_6 - nanCount);
-    if(validNum > 1)
-        median_network_select(validNum, validValues);
+    if(validNum == WINDOW_SIZE_5) {
+        median_network_5(values);
+        *result = values[2];
+        return;
+    } else if(validNum == WINDOW_SIZE_4) {
+        median_network_4(values);
+        *result = ((values[1] + values[2]) / 2);
+        return;
+    } else if(validNum == WINDOW_SIZE_3) {
+        median_network_3(values);
+        *result = values[1];
+        return;
+    } else if(validNum == WINDOW_SIZE_2) {
+        median_network_2(values);
+        *result = ((values[0] + values[1]) / 2);
+        return;
+    }
 
-    const size_t middle = (validNum / 2);
-    *result = ((validNum % 2) == 0) ?
-        ((validValues[middle - 1] + validValues[middle]) / 2) :
-        ((validValues[middle]));
+    *result = values[0];
 }
 
 static void sort_and_calc_median6_nan_handle(double *restrict inputStartPtr, double *restrict result) {
     double values[WINDOW_SIZE_6];
-    for(size_t i = 0; i < WINDOW_SIZE_6; i++)
-        values[i] = *(inputStartPtr++);
+    bool nanInside = false;
+    values_build_array_handle_nan(inputStartPtr, WINDOW_SIZE_6, &nanInside, values);
 
-    if((isnan(values[0])) || (isnan(values[1])) || (isnan(values[2])) ||
-        (isnan(values[3])) || (isnan(values[4])) || (isnan(values[5]))) {
+    if(nanInside) {
         *result = NAN;
         return;
     }
@@ -343,12 +340,8 @@ static void sort_and_calc_median6_nan_handle(double *restrict inputStartPtr, dou
 
 static void sort_and_calc_median7(double *restrict inputStartPtr, double *restrict result) {
     double values[WINDOW_SIZE_7];
-    for(size_t i = 0; i < WINDOW_SIZE_7; i++)
-        values[i] = *(inputStartPtr++);
-
-    bool nanArray[WINDOW_SIZE_7] = {false, false, false, false, false, false, false};
     size_t nanCount = 0;
-    values_build_nan_array(values, WINDOW_SIZE_7, nanArray, &nanCount);
+    values_build_nan_free_array(inputStartPtr, WINDOW_SIZE_7, &nanCount, values);
     if(nanCount == 0) {
         median_network_7(values);
         *result = values[3];
@@ -358,26 +351,38 @@ static void sort_and_calc_median7(double *restrict inputStartPtr, double *restri
         return;
     }
 
-    double validValues[WINDOW_SIZE_7];
-    values_translate_nan_array(values, WINDOW_SIZE_7, nanArray, validValues);
     const size_t validNum = (WINDOW_SIZE_7 - nanCount);
-    if(validNum > 1)
-        median_network_select(validNum, validValues);
+    if(validNum == WINDOW_SIZE_6) {
+        median_network_6(values);
+        *result = ((values[2] + values[3]) / 2);
+        return;
+    } else if(validNum == WINDOW_SIZE_5) {
+        median_network_5(values);
+        *result = values[2];
+        return;
+    } else if(validNum == WINDOW_SIZE_4) {
+        median_network_4(values);
+        *result = ((values[1] + values[2]) / 2);
+        return;
+    } else if(validNum == WINDOW_SIZE_3) {
+        median_network_3(values);
+        *result = values[1];
+        return;
+    } else if(validNum == WINDOW_SIZE_2) {
+        median_network_2(values);
+        *result = ((values[0] + values[1]) / 2);
+        return;
+    }
 
-    const size_t middle = (validNum / 2);
-    *result = ((validNum % 2) == 0) ?
-        ((validValues[middle - 1] + validValues[middle]) / 2) :
-        ((validValues[middle]));
+    *result = values[0];
 }
 
 static void sort_and_calc_median7_nan_handle(double *restrict inputStartPtr, double *restrict result) {
     double values[WINDOW_SIZE_7];
-    for(size_t i = 0; i < WINDOW_SIZE_7; i++)
-        values[i] = *(inputStartPtr++);
+    bool nanInside = false;
+    values_build_array_handle_nan(inputStartPtr, WINDOW_SIZE_7, &nanInside, values);
 
-    if((isnan(values[0])) || (isnan(values[1])) || (isnan(values[2])) ||
-        (isnan(values[3])) || (isnan(values[4])) || (isnan(values[5])) ||
-        (isnan(values[6]))) {
+    if(nanInside) {
         *result = NAN;
         return;
     }
@@ -390,12 +395,8 @@ static void sort_and_calc_median7_nan_handle(double *restrict inputStartPtr, dou
 
 static void sort_and_calc_median8(double *restrict inputStartPtr, double *restrict result) {
     double values[WINDOW_SIZE_8];
-    for(size_t i = 0; i < WINDOW_SIZE_8; i++)
-        values[i] = *(inputStartPtr++);
-
-    bool nanArray[WINDOW_SIZE_8] = {false, false, false, false, false, false, false, false};
     size_t nanCount = 0;
-    values_build_nan_array(values, WINDOW_SIZE_8, nanArray, &nanCount);
+    values_build_nan_free_array(inputStartPtr, WINDOW_SIZE_8, &nanCount, values);
     if(nanCount == 0) {
         median_network_8(values);
         *result = ((values[3] + values[4]) / 2);
@@ -405,26 +406,42 @@ static void sort_and_calc_median8(double *restrict inputStartPtr, double *restri
         return;
     }
 
-    double validValues[WINDOW_SIZE_8];
-    values_translate_nan_array(values, WINDOW_SIZE_8, nanArray, validValues);
     const size_t validNum = (WINDOW_SIZE_8 - nanCount);
-    if(validNum > 1)
-        median_network_select(validNum, validValues);
+    if(validNum == WINDOW_SIZE_7) {
+        median_network_7(values);
+        *result = values[3];
+        return;
+    } else if(validNum == WINDOW_SIZE_6) {
+        median_network_6(values);
+        *result = ((values[2] + values[3]) / 2);
+        return;
+    } else if(validNum == WINDOW_SIZE_5) {
+        median_network_5(values);
+        *result = values[2];
+        return;
+    } else if(validNum == WINDOW_SIZE_4) {
+        median_network_4(values);
+        *result = ((values[1] + values[2]) / 2);
+        return;
+    } else if(validNum == WINDOW_SIZE_3) {
+        median_network_3(values);
+        *result = values[1];
+        return;
+    } else if(validNum == WINDOW_SIZE_2) {
+        median_network_2(values);
+        *result = ((values[0] + values[1]) / 2);
+        return;
+    }
 
-    const size_t middle = (validNum / 2);
-    *result = ((validNum % 2) == 0) ?
-        ((validValues[middle - 1] + validValues[middle]) / 2) :
-        ((validValues[middle]));
+    *result = values[0];
 }
 
 static void sort_and_calc_median8_nan_handle(double *restrict inputStartPtr, double *restrict result) {
     double values[WINDOW_SIZE_8];
-    for(size_t i = 0; i < WINDOW_SIZE_8; i++)
-        values[i] = *(inputStartPtr++);
+    bool nanInside = false;
+    values_build_array_handle_nan(inputStartPtr, WINDOW_SIZE_8, &nanInside, values);
 
-    if((isnan(values[0])) || (isnan(values[1])) || (isnan(values[2])) ||
-        (isnan(values[3])) || (isnan(values[4])) || (isnan(values[5])) ||
-        (isnan(values[6])) || (isnan(values[7]))) {
+    if(nanInside) {
         *result = NAN;
         return;
     }
@@ -439,53 +456,25 @@ static inline void values_swap(double *restrict a, double *restrict b) {
     *a = tempValue;
 }
 
-static inline void values_build_nan_array(double *restrict values, size_t length, bool *restrict nanArray,
-    size_t *nanCount) {
-    size_t nanResultCount = 0;
+static inline void values_build_nan_free_array(double *restrict inputStartPtr, size_t length, size_t *nanCount,
+    double *output) {
+    size_t outputPosition = 0;
     for(size_t i = 0; i < length; i++) {
-        const bool isNaN = isnan(values[i]);
-        nanArray[i] = isNaN;
-        nanResultCount += isNaN;
-    }
-
-    *nanCount = nanResultCount;
-}
-
-static inline void values_translate_nan_array(double *restrict values, size_t length, bool *restrict nanArray,
-    double *validValues) {
-    size_t insertPosition = 0;
-    for(size_t i = 0; i < length; i++) {
-        const bool valid = (!nanArray[i]);
-        if(!valid)
-            continue;
-
-        validValues[insertPosition] = values[i];
-        insertPosition++;
+        const double v = *(inputStartPtr++);
+        const bool isNaN = isnan(v);
+        output[outputPosition] = v;
+        outputPosition += (!isNaN);
+        *nanCount += isNaN;
     }
 }
 
-static inline void median_network_select(size_t validNum, double *restrict values) {
-    switch (validNum) {
-        case 2:
-            median_network_2(values);
-            break;
-        case 3:
-            median_network_3(values);
-            break;
-        case 4:
-            median_network_4(values);
-            break;
-        case 5:
-            median_network_5(values);
-            break;
-        case 6:
-            median_network_6(values);
-            break;
-        case 7:
-            median_network_7(values);
-            break;
-        case 8:
-            median_network_8(values);
+static inline void values_build_array_handle_nan(double *restrict inputStartPtr, size_t length, bool *nanInside,
+    double *output) {
+    for(size_t i = 0; i < length; i++) {
+        const double v = *(inputStartPtr++);
+        const bool isNaN = isnan(v);
+        *nanInside |= isNaN;
+        output[i] = v;
     }
 }
 
