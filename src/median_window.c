@@ -4,7 +4,7 @@
  * @brief This file implements a double-heap sliding median window.
  * @note The implementation follows the same general concept as other implementations,
  *       such as Bottleneck (https://github.com/pydata/bottleneck).
- * @version 0.2
+ * @version 0.3
  * @date 2025-12-13
  *
  * @copyright Copyright (c) 2025
@@ -170,26 +170,25 @@ void medianwindow_updateOld(MedianWindow *restrict window, double value) {
         } else
             replaced = true;
 
-        if(!replaced)
-            return;
+        if(replaced) {
+            if(tailNodeHeapType == MAX_HEAP) {
+                if(newValue > oldValue) {
+                    maxheap_heapifyUp(window->maxHeap, inputPosition);
 
-        if(tailNodeHeapType == MAX_HEAP) {
-            if(newValue > oldValue) {
-                maxheap_heapifyUp(window->maxHeap, inputPosition);
-
-                if(heaps_can_rebalance(window))
-                    heaps_rebalance(window);
+                    if(heaps_can_rebalance(window))
+                        heaps_rebalance(window);
+                } else {
+                    maxheap_heapifyDown(window->maxHeap, window->maxHeapLength, inputPosition);
+                }
             } else {
-                maxheap_heapifyDown(window->maxHeap, window->maxHeapLength, inputPosition);
-            }
-        } else {
-            if(newValue < oldValue) {
-                minheap_heapifyUp(window->minHeap, inputPosition);
+                if(newValue < oldValue) {
+                    minheap_heapifyUp(window->minHeap, inputPosition);
 
-                if(heaps_can_rebalance(window))
-                    heaps_rebalance(window);
-            } else {
-                minheap_heapifyDown(window->minHeap, window->minHeapLength, inputPosition);
+                    if(heaps_can_rebalance(window))
+                        heaps_rebalance(window);
+                } else {
+                    minheap_heapifyDown(window->minHeap, window->minHeapLength, inputPosition);
+                }
             }
         }
 
@@ -411,7 +410,8 @@ static inline void medianwindow_maxheap_root_to_minheap_root(MedianWindow *restr
 
     const size_t inputPosition = minheap_put(window, rootNode);
     minheap_heapifyUp(window->minHeap, inputPosition);
-    heaps_rebalance(window);
+    if(heaps_can_rebalance(window))
+        heaps_rebalance(window);
 }
 
 static inline void medianwindow_minheap_root_to_maxheap_root(MedianWindow *restrict window) {
@@ -427,7 +427,8 @@ static inline void medianwindow_minheap_root_to_maxheap_root(MedianWindow *restr
 
     const size_t inputPosition = maxheap_put(window, rootNode);
     maxheap_heapifyUp(window->maxHeap, inputPosition);
-    heaps_rebalance(window);
+    if(heaps_can_rebalance(window))
+        heaps_rebalance(window);
 }
 
 static inline void medianwindow_put_spc_number(MedianWindow *restrict window, HeapNode *restrict targetNode) {

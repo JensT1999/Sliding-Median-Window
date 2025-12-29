@@ -43,8 +43,8 @@ bool sliding_heap_medianwindow(double *restrict array, size_t length, size_t win
     return true;
 }
 
-bool sliding_tiny_medianwindow(double *restrict array, size_t length, size_t windowSize,
-    size_t steps, double *restrict result) {
+bool sliding_tiny_medianwindow(double *restrict array, size_t length, size_t windowSize, size_t steps,
+    bool ignoreNaNWindows, double *restrict result) {
     if(!valid_window(array, length, windowSize, steps, result))
         return false;
 
@@ -54,7 +54,7 @@ bool sliding_tiny_medianwindow(double *restrict array, size_t length, size_t win
 
     char *startPtr = memory;
     Tiny_MedianWindow *window;
-    tiny_medianwindow_initialize(&memory, windowSize, steps, &window);
+    tiny_medianwindow_initialize(&memory, windowSize, steps, ignoreNaNWindows, &window);
 
     for(size_t i = 0; i < length; i++) {
         if(tiny_medianwindow_full(window))
