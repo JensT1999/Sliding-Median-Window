@@ -55,7 +55,7 @@ void medianwindow_initialize(char **memory, size_t windowSize, size_t steps,
     resultWindow->windowSize = windowSize;
     resultWindow->currentSize = 0;
     resultWindow->steps = steps;
-    resultWindow->stepDistance = 0;
+    resultWindow->stepDistance = (steps - 1);
     resultWindow->maxHeap = maxHeapStartingNode;
     resultWindow->maxHeapLength = 0;
     resultWindow->minHeap = minHeapStartingNode;

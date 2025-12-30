@@ -9,6 +9,8 @@
 #include <math.h>
 #include "config.h"
 
+#define IS_INFINITY(v) ((v == INFINITY) || (v == -INFINITY))
+
 typedef struct Tiny_MedianWindow
 {
     size_t windowSize;
