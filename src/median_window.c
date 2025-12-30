@@ -5,7 +5,7 @@
  * @note The implementation follows the same general concept as other implementations,
  *       such as Bottleneck (https://github.com/pydata/bottleneck).
  * @version 0.3
- * @date 2025-12-13
+ * @date 2025-12-30
  *
  * @copyright Copyright (c) 2025
  *

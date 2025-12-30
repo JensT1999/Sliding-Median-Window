@@ -5,7 +5,7 @@
  *        which are applied in sliding window operations where the window is small enough
  *        that sorting networks are more efficient than heap-based methods.
  * @version 0.2
- * @date 2025-12-13
+ * @date 2025-12-30
  *
  * @copyright Copyright (c) 2025
  *
@@ -34,7 +34,6 @@ static inline void values_swap(double *restrict a, double *restrict b);
 
 static inline void values_build_nan_free_array(double *restrict inputStartPtr, size_t length, size_t *nanCount,
     double *output);
-
 static inline void values_build_nan_free_array_count_nan_inf(double *restrict inputStartPtr, size_t length,
     size_t *nanCount, size_t *infCount, double *output);
 static inline void values_build_array_handle_nan(double *restrict inputStartPtr, size_t length, bool *nanInside,
