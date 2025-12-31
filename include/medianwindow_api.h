@@ -21,12 +21,4 @@
 bool sliding_medianwindow(double *inputArray, size_t length, size_t windowSize, size_t steps,
     bool ignoreNaNWindows, double *outputArray);
 
-
-bool sliding_big_window(double *inputArray, size_t length, size_t windowSize, size_t steps,
-    bool ignoreNaNWindows, double *outputArray);
-
-bool sliding_tiny_window(double *inputArray, size_t length, size_t windowSize, size_t steps,
-    bool ignoreNaNWindows, double *outputArray);
-
-
 #endif

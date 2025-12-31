@@ -498,7 +498,6 @@ static inline void values_build_nan_free_array_count_nan_inf(double *restrict in
         output[outputPosition] = v;
         outputPosition += (!isNaN);
         *nanCount += isNaN;
-
         *infCount += IS_INFINITY(v);
     }
 }
