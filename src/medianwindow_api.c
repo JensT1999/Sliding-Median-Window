@@ -1,6 +1,7 @@
 #include "medianwindow_api.h"
 #include "median.h"
-#include "config.h"
+
+#define TINY_MEDIANWINDOW_THRESHOLD 8
 
 bool sliding_medianwindow(double *inputArray, size_t length, size_t windowSize, size_t steps,
     bool ignoreNaNWindows, double *outputArray) {

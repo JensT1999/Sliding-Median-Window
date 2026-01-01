@@ -13,8 +13,6 @@
 
 #include "tiny_medianwindow.h"
 
-#include <stdio.h>
-
 static void set_sort_and_calc_function(Tiny_MedianWindow *window, bool ignoreNaNWindows);
 static void sort_and_calc_median2(double *restrict inputStartPtr, double *restrict result);
 static void sort_and_calc_median2_nan_handle(double *restrict inputStartPtr, double *restrict result);
@@ -498,7 +496,7 @@ static inline void values_build_nan_free_array_count_nan_inf(double *restrict in
         output[outputPosition] = v;
         outputPosition += (!isNaN);
         *nanCount += isNaN;
-        *infCount += IS_INFINITY(v);
+        *infCount += isinf(v);
     }
 }
 

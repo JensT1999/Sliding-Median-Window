@@ -7,9 +7,8 @@
 #include <string.h>
 #include <float.h>
 #include <math.h>
-#include "config.h"
 
-#define IS_INFINITY(v) ((v == INFINITY) || (v == -INFINITY))
+#define STD_ALIGNMENT 8
 
 typedef struct Tiny_MedianWindow
 {

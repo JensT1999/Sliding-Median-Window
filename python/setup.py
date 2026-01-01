@@ -6,7 +6,6 @@ extensions = [
     Extension(
         "sliding_median_window",
         sources=["sliding_median_window.pyx",
-                "../src/window_helpers.c",
                 "../src/medianwindow_api.c",
                 "../src/median.c",
                 "../src/tiny_medianwindow.c",

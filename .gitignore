@@ -163,6 +163,7 @@ outDebug
 outRelease
 Makefile.debug
 Makefile.release
+Makefile.testdebug
 /python/*.so
 /python/build
 /python/sliding_median_window.c

@@ -5,8 +5,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <math.h>
-#include "config.h"
 
+#define STD_ALIGNMENT 8
 #define K_ARY_HEAP_CHILDREN 8
 #define HEAP_PARENT_FORMULAR(position) (position - 1) / K_ARY_HEAP_CHILDREN
 #define HEAP_CHILDREN_FORMULAR(position, num_child) (position * K_ARY_HEAP_CHILDREN) + num_child
