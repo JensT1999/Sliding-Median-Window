@@ -19,6 +19,11 @@ def sliding_median_window(np.ndarray[np.float64_t, ndim=1] array,
         Size of the sliding window.
     steps : int
         Number of steps between median outputs.
+    ignoreNaNWindows : bool
+        true: If at least one NaN is present in the window, the resulting median for that window will be NaN;
+        false: The median is calculated using only valid (non-NaN) elements inside the window.
+        Infinite values (+/-INFINITY) are considered valid. If no valid elements remain in the window,
+        the resulting median will be NaN. Example: valid_elements = windowSize - NaN_count
     output : np.ndarray
         Output array to store the computed medians.
 

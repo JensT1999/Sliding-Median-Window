@@ -14,7 +14,11 @@
  * @param inputArray - the input sequence
  * @param length - the length/size of the input sequence
  * @param windowSize - the size of the window
- * @param steps - the steps that must be taken to obtain a median
+ * @param steps - the steps that must be taken to obtain a median#
+ * @param ignoreNaNWindows - true: If at least one NaN is present in the window, the resulting median
+ *      for that window will be NaN; false: The median is calculated using only valid (non-NaN) elements inside
+ *      the window. Infinite values (+/-INFINITY) are considered valid. If no valid elements remain in the window,
+ *      the resulting median will be NaN. Example: valid_elements = windowSize - NaN_count
  * @param outputArray - the output sequence
  * @return - true on success; otherwise false
  */
