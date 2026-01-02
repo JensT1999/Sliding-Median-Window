@@ -1,3 +1,21 @@
+/**
+ * @file test.c
+ * @author Jens Trappmann (jens.trappmann@icloud.com)
+ * @brief This file contains all tests required to cover both standard cases and edge cases,
+ *        and to verify the correctness of the sliding median window implementation.
+ *        For this purpose, multiple test scenarios were developed whose parameters can be adjusted.
+ *        It is important to note that the edge case tests are tailored to the sizes of the specific window
+ *        implementations. This means that the tiny window tests validate the dedicated Sorting/Median Network
+ *        implementation used for median calculation, while the big window tests validate the specific
+ *        double-heap implementation.
+ *        Please note: Sorting/Median Networks are used for window sizes from 2 to 8. The double-heap approach,
+ *        on the other hand, is used for larger window sizes.
+ * @version 0.1
+ * @date 2026-01-02
+ *
+ * @copyright Copyright (c) 2026
+ *
+ */
 #include <stdbool.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -301,7 +319,6 @@ static void run_fourth_edge_case_test_tiny_window(void) {
 // (e.g. windows using a double heap implementation)
 // For a more detailed description of the tests see the edge case tests for tiny windows above
 // Notice: By bigger windows I mean windows with a windowSize of 9 ... upwards
-
 static void run_edge_case_tests_big_window(void) {
     run_first_edge_case_test_big_window();
     run_second_edge_case_test_big_window();
@@ -405,6 +422,10 @@ static void run_fourth_edge_case_test_big_window(void) {
         assert(outputArray[i] == 7);
 }
 
+// The following tests are testing the correctness of the resulting median computation.
+// These tests generate an array consisting of random double values in the range from LOWEST_VALUE_NORMAL_INPUT_TEST
+// to HIGHEST_VALUE_NORMAL_INPUT_TEST. No NaN or infinity values are included in these tests.
+// ignoreNaNWindows is set to false
 static void run_tests_normal_input(void) {
     bool testOne = test_normal_input(TEST_ARRAY_SIZE_FOR_CORRECTNESS, TEST_ONE_WINDOWSIZE, TEST_ONE_STEPS);
     bool testTwo = test_normal_input(TEST_ARRAY_SIZE_FOR_CORRECTNESS, TEST_TWO_WINDOWSIZE, TEST_TWO_STEPS);
@@ -485,6 +506,11 @@ static bool test_normal_input(size_t testArrayLength, size_t windowSize, size_t 
     return true;
 }
 
+// The following tests are testing the correctness of the resulting median computation.
+// These tests generate an array consisting of random double values in the range from LOWEST_VALUE_NORMAL_INPUT_TEST
+// to HIGHEST_VALUE_NORMAL_INPUT_TEST. Additionally NaN or infinity values are added.
+// ignoreNaNWindows is set to true
+// This results in a NaN output for a window if at least one NaN value is present within that window.
 static void run_tests_normal_spc_input_ignoring_nan(void) {
     bool testOne = test_input_with_spc_numbers(TEST_ARRAY_SIZE_FOR_CORRECTNESS,
         TEST_ONE_WINDOWSIZE, TEST_ONE_STEPS, true,
@@ -531,6 +557,11 @@ static void run_tests_normal_spc_input_ignoring_nan(void) {
     printf("All special/normal input tests passed (ignoring nan)\n");
 }
 
+// The following tests are testing the correctness of the resulting median computation.
+// These tests generate an array consisting of random double values in the range from LOWEST_VALUE_NORMAL_INPUT_TEST
+// to HIGHEST_VALUE_NORMAL_INPUT_TEST. Additionally NaN or infinity values are added.
+// ignoreNaNWindows is set to false
+// This results in the calculation of the median from the remaining values in a window, excluding any NaN values.
 static void run_tests_normal_spc_input_not_ignoring_nan(void) {
     bool testOne = test_input_with_spc_numbers(TEST_ARRAY_SIZE_FOR_CORRECTNESS,
         TEST_ONE_WINDOWSIZE, TEST_ONE_STEPS, false,
@@ -646,6 +677,8 @@ static bool test_input_with_spc_numbers(size_t testArrayLength, size_t windowSiz
 
     return true;
 }
+
+// Test Util Methods
 
 static void test_array_init(size_t length, double lowestValue, double heighestValue, double *dest) {
     for(size_t i = 0; i < length; i++) {

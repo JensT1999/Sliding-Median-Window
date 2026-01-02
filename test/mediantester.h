@@ -1,3 +1,14 @@
+/**
+ * @file mediantester.h
+ * @author Jens Trappmann (jens.trappmann@icloud.com)
+ * @brief This implementation is intended to provide an accurate but slow calculation of the median.
+ *        Its sole purpose is to verify the correctness of the output of the sliding median windows.
+ * @version 0.1
+ * @date 2026-01-02
+ *
+ * @copyright Copyright (c) 2026
+ *
+ */
 #ifndef MEDIAN_TESTER_H
 #define MEDIAN_TESTER_H
 
