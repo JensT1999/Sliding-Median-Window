@@ -3,14 +3,14 @@
 
 This project implements a **sliding median window** with Python/Cython bindings.
 It supports different strategies based on the size of the window:
-- **Median Networks** for tiny windows (size 2-8)
+- **Median/Sorting Networks** for tiny windows (size 2-8)
 - **Double-Heap Approach** for bigger windows
 
 This library allows efficient computation of the median over a sliding window in numerical sequences.
 
 ## Features
 - Sliding median computation for arbitrary window sizes
-- Optimized for performance using median networks and double-heaps in C
+- Optimized for performance using median/sorting networks and double-heaps in C
 - Python interface via Cython for easy integration with NumPy
 - Special Number Handling (e.g. NaN and Infinity)
 
@@ -50,11 +50,11 @@ from sliding_median_window import sliding_median_window
 
 After that use the **sliding median window** with the following syntax:
 ```python
-sliding_median_window(input_array (NumPy Array),
+sliding_median_window(input_array,
     windowSize,
     steps,
     ignoreNaNWindows,
-    output_array (Numpy Array))
+    output_array)
 ```
 
 Explanation of input parameters:
@@ -81,7 +81,8 @@ output = np.empty(n)
 # When ignoring NaN Windows
 sliding_median_window(arr, windowSize, steps, True, output)
 
-# When not ignoring NaN Windows (e.g. calculating the median of the valid elements remaining in the window)
+# When not ignoring NaN Windows
+# (e.g. calculating the median of the valid elements remaining in the window)
 sliding_median_window(arr, windowSize, steps, False, output)
 ```
 Note: The Python function is a wrapper around the C implementation, working directly with NumPy arrays.
@@ -140,7 +141,7 @@ clean:
 ```
 
 ### Makefile for tests
-The project also provides a Makefile to build the test executable. Simply navigate to the project’s root directory and run the following command:
+The project also provides a Makefile to build the test executable. Simply navigate to the project's root directory and run the following command:
 ```bash
 make -f Makefile.test
 ```
@@ -149,6 +150,73 @@ To clean all files created by the above command run:
 ```bash
 make -f Makefile.test clean
 ```
+
+### Makefile for benchmarks
+This project also provides a Makefile to build the benchmark executable. Simply navigate to the projects's root
+directory and run the following command:
+```bash
+make -f Makefile.benchmark
+```
+The command will create an executable **run_benchmark** file. To run a benchmark first navigate to the benchmark
+directory of this project, where the **run_benchmark** file is located. After that execute the following command:
+```bash
+./run_benchmark <inputSequenceLength>
+                <nanValueCount>
+                <infValueCount>
+                <lowestPossibleValue>
+                <heighestPossibleValue>
+                <windowSize>
+                <steps>
+                <ignoreNaNWindows>
+```
+To clean all files created by the above command run:
+```bash
+make -f Makefile.benchmark clean
+```
+
+## Benchmarks
+Below are the benchmarks, captured on a MacBook Air M3 using the **run_benchmark** executable mentioned above. <br>
+For each measurement, 3 warm-up runs were performed, followed by 10 consecutive measurements. The mean and standard deviation were then calculated from these results. Both are represented in seconds and can be found in the following tables.
+
+### Tiny Window Benchmarks (Median/Sorting Networks)
+The following table presents benchmark results for sliding windows over input sequences containing no NaN or Infinity values. The ignoreNaNWindows property is set to false.
+<table>
+<tr><th>Input sequence length</th><th>Window size</th><th>Steps</th><th>Time taken (Mean)</th><th>Standard deviation</th></tr>
+<tr><td>1000000</td><td>5</td><td>1</td><td>0.00953</td><td>0.00124</td></tr>
+<tr><td>1000000</td><td>5</td><td>5</td><td>0.004536</td><td>0.00022</td></tr>
+<tr><td>10000000</td><td>5</td><td>1</td><td>0.0446</td><td>0.00032</td></tr>
+<tr><td>10000000</td><td>5</td><td>5</td><td>0.019665</td><td>0.00022</td></tr>
+<tr><td>100000000</td><td>5</td><td>1</td><td>0.4651</td><td>0.0261</td></tr>
+<tr><td>100000000</td><td>5</td><td>5</td><td>0.19861</td><td>0.00381</td></tr>
+</table>
+<br>
+The following table presents measurements for sliding windows over an input sequence containing NaN and Infinity values. These values each account for 10% of the total input sequence length. The ignoreNaNWindows property is set to false.
+<table>
+<tr><th>Input sequence length</th><th>Window size</th><th>Steps</th><th>Time taken (Mean)</th><th>Standard deviation</th></tr>
+<tr><td>1000000</td><td>5</td><td>1</td><td>0.0122</td><td>0.00049</td></tr>
+<tr><td>1000000</td><td>5</td><td>5</td><td>0.00642</td><td>0.00034</td></tr>
+<tr><td>10000000</td><td>5</td><td>1</td><td>0.06143</td><td>0.00094</td></tr>
+<tr><td>10000000</td><td>5</td><td>5</td><td>0.02987</td><td>0.00033</td></tr>
+<tr><td>100000000</td><td>5</td><td>1</td><td>0.62736</td><td>0.01572</td></tr>
+<tr><td>100000000</td><td>5</td><td>5</td><td>0.30257</td><td>0.00577</td></tr>
+</table>
+<br>
+The following table presents measurements for sliding windows over an input sequence containing NaN and Infinity values. These values each account for 10% of the total input sequence length. The ignoreNaNWindows property is set to true, which means that windows containing at least one NaN will result in NaN.
+<table>
+<tr><th>Input sequence length</th><th>Window size</th><th>Steps</th><th>Time taken (Mean)</th><th>Standard deviation</th></tr>
+<tr><td>1000000</td><td>5</td><td>1</td><td>0.01173</td><td>0.00034</td></tr>
+<tr><td>1000000</td><td>5</td><td>5</td><td>0.00595</td><td>0.00034</td></tr>
+<tr><td>10000000</td><td>5</td><td>1</td><td>0.05884</td><td>0.00186</td></tr>
+<tr><td>10000000</td><td>5</td><td>5</td><td>0.0286</td><td>0.0005</td></tr>
+<tr><td>100000000</td><td>5</td><td>1</td><td>0.59473</td><td>0.02017</td></tr>
+<tr><td>100000000</td><td>5</td><td>5</td><td>0.28486</td><td>0.0034</td></tr>
+</table>
+
+#### Interpretation for tiny windows
+- Runtime scales linearly with the input sequence length.
+- Increasing the step size significantly reduces runtime.
+- Handling NaN and Infinity values introduces a measurable but predictable overhead.
+
 
 ## Contact
 If you have any questions, feel free to contact me:

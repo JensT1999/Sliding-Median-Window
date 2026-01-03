@@ -67,19 +67,19 @@ int main(int argc, char *argv[]) {
     if((!check_unsigned_digit(argv[1], &inputSequenceLength)) || (!check_unsigned_digit(argv[2], &nanValues))
         || (!check_unsigned_digit(argv[3], &infValues)) || (!check_signed_digit(argv[4], &lowestPossibleValue))
         || (!check_signed_digit(argv[5], &heighestPossibleValue))) {
-        printf("Please enter valid digits!");
+        printf("Please enter valid digits!\n");
         return EXIT_FAILURE;
     }
 
     size_t windowSize = 0, steps = 0;
     if((!check_unsigned_digit(argv[6], &windowSize)) || (!check_unsigned_digit(argv[7], &steps))) {
-        printf("Please enter valid digits!");
+        printf("Please enter valid digits!\n");
         return EXIT_FAILURE;
     }
 
     bool ignoreNaNWindows = false;
     if(!check_valid_ignoreNaNWindows(argv[8], &ignoreNaNWindows)) {
-        printf("Please enter valid ignoreNaNWindows property (true/false).");
+        printf("Please enter valid ignoreNaNWindows property (true/false).\n");
         return EXIT_FAILURE;
     }
 
@@ -94,11 +94,11 @@ int main(int argc, char *argv[]) {
                                                 ignoreNaNWindows);
 
     if(!benchmarkSuccess) {
-        printf("It seems like there was an error!");
+        printf("It seems like there was an error!\n");
         return EXIT_FAILURE;
     }
 
-    printf("Benchmark success");
+    printf("Benchmark success!\n");
     return EXIT_SUCCESS;
 }
 
@@ -184,7 +184,7 @@ static bool check_valid_ignoreNaNWindows(char *string, bool *result) {
 
 static bool benchmark_start(size_t length, size_t nanValues, size_t infValues, double lowestValue,
     double heighestValue, size_t windowSize, size_t steps, bool ignoreNaNWindows) {
-    if((length == 0) || (nanValues == 0) || (infValues == 0))
+    if(length == 0)
         return false;
     if((nanValues >= length) || (infValues >= length) || ((nanValues + infValues) >= length))
         return false;
