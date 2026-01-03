@@ -23,6 +23,7 @@ git clone https://github.com/JensT1999/CSlidingWindowMedian.git
 Please note: Compiling the **sliding median window** expects using the GCC or clang compiler. Especially the MSVC compiler is not supported. <br> To compile properly you need to install GCC or clang from their official
 website.
 ### Python
+<hr>
 If you want to use the **sliding median window** in python you need to install setuptools and cython. <br>
 To install both go to your python environment and type:
 ```bash
@@ -88,6 +89,7 @@ sliding_median_window(arr, windowSize, steps, False, output)
 Note: The Python function is a wrapper around the C implementation, working directly with NumPy arrays.
 
 ### C
+<hr>
 To use the sliding median window in C, include the API header:
 ```c
 #include "medianwindow_api.h"
@@ -107,14 +109,17 @@ Please note: The parameters of the C function are the same as the python functio
 
 ### Important
 Please note that in both implementations the size of the result array should be at least:<br>
-<b>((input_array_length - windowSize) / steps + 1)</b><br><br>
+<b>((input_array_length - windowSize) / steps + 1)</b><br>
 Please note that setting ignoreNaNWindows to false results in the median no longer being calculated over the full window size if a NaN is present.<br>
 
 <b>Example:</b>
 windowSize = 10, NaN count in the window = 1
 → The median will be calculated from the remaining 9 valid elements.
 
+## Makefiles
 ### Makefile for C Usage
+<hr>
+
 Due to the project structure, no Makefile is included by default.
 Below is an example Makefile that can be used to compile the project in C:
 ```makefile
@@ -141,6 +146,7 @@ clean:
 ```
 
 ### Makefile for tests
+<hr>
 The project also provides a Makefile to build the test executable. Simply navigate to the project's root directory and run the following command:
 ```bash
 make -f Makefile.test
@@ -152,6 +158,7 @@ make -f Makefile.test clean
 ```
 
 ### Makefile for benchmarks
+<hr>
 This project also provides a Makefile to build the benchmark executable. Simply navigate to the projects's root
 directory and run the following command:
 ```bash
@@ -179,6 +186,8 @@ Below are the benchmarks, captured on a MacBook Air M3 using the **run_benchmark
 For each measurement, 3 warm-up runs were performed, followed by 10 consecutive measurements. The mean and standard deviation were then calculated from these results. Both are represented in seconds and can be found in the following tables.
 
 ### Tiny Window Benchmarks (Median/Sorting Networks)
+<hr>
+<br>
 The following table presents benchmark results for sliding windows over input sequences containing no NaN or Infinity values. The ignoreNaNWindows property is set to false.
 <table>
 <tr><th>Input sequence length</th><th>Window size</th><th>Steps</th><th>Time taken (Mean)</th><th>Standard deviation</th></tr>
@@ -189,8 +198,8 @@ The following table presents benchmark results for sliding windows over input se
 <tr><td>100000000</td><td>5</td><td>1</td><td>0.4651</td><td>0.0261</td></tr>
 <tr><td>100000000</td><td>5</td><td>5</td><td>0.19861</td><td>0.00381</td></tr>
 </table>
-<br>
 The following table presents measurements for sliding windows over an input sequence containing NaN and Infinity values. These values each account for 10% of the total input sequence length. The ignoreNaNWindows property is set to false.
+
 <table>
 <tr><th>Input sequence length</th><th>Window size</th><th>Steps</th><th>Time taken (Mean)</th><th>Standard deviation</th></tr>
 <tr><td>1000000</td><td>5</td><td>1</td><td>0.0122</td><td>0.00049</td></tr>
@@ -200,8 +209,8 @@ The following table presents measurements for sliding windows over an input sequ
 <tr><td>100000000</td><td>5</td><td>1</td><td>0.62736</td><td>0.01572</td></tr>
 <tr><td>100000000</td><td>5</td><td>5</td><td>0.30257</td><td>0.00577</td></tr>
 </table>
-<br>
 The following table presents measurements for sliding windows over an input sequence containing NaN and Infinity values. These values each account for 10% of the total input sequence length. The ignoreNaNWindows property is set to true, which means that windows containing at least one NaN will result in NaN.
+
 <table>
 <tr><th>Input sequence length</th><th>Window size</th><th>Steps</th><th>Time taken (Mean)</th><th>Standard deviation</th></tr>
 <tr><td>1000000</td><td>5</td><td>1</td><td>0.01173</td><td>0.00034</td></tr>
@@ -213,10 +222,44 @@ The following table presents measurements for sliding windows over an input sequ
 </table>
 
 #### Interpretation for tiny windows
+<hr>
+
 - Runtime scales linearly with the input sequence length.
 - Increasing the step size significantly reduces runtime.
 - Handling NaN and Infinity values introduces a measurable but predictable overhead.
+<hr>
 
+### Big Window Benchmarks (Double-Heap Approach)
+<hr>
+<br>
+The following table presents benchmarks for larger window sizes, where the double-heap approach is used. The input sequence contains no NaN or Infinity values, and the ignoreNaNWindows property is set to false.
+<table>
+<tr><th>Input sequence length</th><th>Window size</th><th>Steps</th><th>Time taken (Mean)</th><th>Standard deviation</th></tr>
+<tr><td>1000000</td><td>10</td><td>1</td><td>0.034561</td><td>0.001</td></tr>
+<tr><td>1000000</td><td>10</td><td>10</td><td>0.03415</td><td>0.0005</td></tr>
+<tr><td>1000000</td><td>100</td><td>1</td><td>0.0535</td><td>0.00185</td></tr>
+<tr><td>1000000</td><td>100</td><td>100</td><td>0.052</td><td>0.001</td></tr>
+<tr><td>1000000</td><td>1000</td><td>1</td><td>0.0622</td><td>0.0014</td></tr>
+<tr><td>1000000</td><td>1000</td><td>1000</td><td>0.06063</td><td>0.0021</td></tr>
+<tr><td>1000000</td><td>10000</td><td>1</td><td>0.07684</td><td>0.0011</td></tr>
+<tr><td>1000000</td><td>10000</td><td>10000</td><td>0.07455</td><td>0.0018</td></tr>
+</table>
+
+#### Interpretation for big windows
+<hr>
+The double-heap approach maintains the state of the current window while sliding over the input sequence.
+As a result, each element of the input sequence enters the heap and remains there until it leaves the window, independent of the chosen step size.
+
+In contrast, the tiny-window approach based on median/sorting networks processes each window independently.
+It copies the complete window from the input sequence every *x* steps and computes the result without maintaining any state across windows. This makes the approach particularly efficient for very small window sizes.
+
+For larger windows, however, copying the entire window becomes increasingly expensive.
+In this case, the double-heap approach is more suitable, as it only removes one element and inserts one new element per window move.
+
+This leads to the following implication:
+
+- Increasing the step size does not reduce the runtime for large windows.
+<hr>
 
 ## Contact
 If you have any questions, feel free to contact me:
