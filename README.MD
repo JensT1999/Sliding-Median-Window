@@ -177,7 +177,7 @@ make -f Makefile.benchmark clean
 
 ## Benchmarks
 Below are the benchmarks, captured on a MacBook Air M3 using the **run_benchmark** executable mentioned above. <br>
-For each measurement, 3 warm-up runs were performed, followed by 10 consecutive measurements. The mean and standard deviation were then calculated from these results. Both are represented in seconds and can be found in the following tables.
+For each measurement, 3 warm-up runs were performed, followed by 10 consecutive measurements. The lowestPossibleValue was set to -1000 and the highestPossibleValue to 1000. The mean and standard deviation were then calculated from these results. Both are represented in seconds and can be found in the following tables.
 
 ### Tiny Window Benchmarks (Median/Sorting Networks)
 The following table presents benchmark results for sliding windows over input sequences containing no NaN or Infinity values. The ignoreNaNWindows property is set to false.

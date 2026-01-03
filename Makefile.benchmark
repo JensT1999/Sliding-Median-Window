@@ -1,5 +1,5 @@
 CC  = gcc
-CFLAGS  = -O3 -Wall -Iinclude
+CFLAGS  = -O3 -march=native -flto -Wall -Wextra -std=c99 -Iinclude -Isrc
 LDFLAGS =
 
 SRC_DIR = src
@@ -32,4 +32,3 @@ clean:
 	rm -rf $(OBJ_DIR) $(BENCHMARK_BIN)
 
 .PHONY: all clean
-
