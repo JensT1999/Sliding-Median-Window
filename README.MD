@@ -23,7 +23,6 @@ git clone https://github.com/JensT1999/CSlidingWindowMedian.git
 Please note: Compiling the **sliding median window** expects using the GCC or clang compiler. Especially the MSVC compiler is not supported. <br> To compile properly you need to install GCC or clang from their official
 website.
 ### Python
-***
 If you want to use the **sliding median window** in python you need to install setuptools and cython. <br>
 To install both go to your python environment and type:
 ```bash
@@ -89,7 +88,6 @@ sliding_median_window(arr, windowSize, steps, False, output)
 Note: The Python function is a wrapper around the C implementation, working directly with NumPy arrays.
 
 ### C
-***
 To use the sliding median window in C, include the API header:
 ```c
 #include "medianwindow_api.h"
@@ -118,7 +116,6 @@ windowSize = 10, NaN count in the window = 1
 
 ## Makefiles
 ### Makefile for C Usage
-***
 Due to the project structure, no Makefile is included by default.
 Below is an example Makefile that can be used to compile the project in C:
 ```makefile
@@ -145,7 +142,6 @@ clean:
 ```
 
 ### Makefile for tests
-***
 The project also provides a Makefile to build the test executable. Simply navigate to the project's root directory and run the following command:
 ```bash
 make -f Makefile.test
@@ -157,7 +153,6 @@ make -f Makefile.test clean
 ```
 
 ### Makefile for benchmarks
-***
 This project also provides a Makefile to build the benchmark executable. Simply navigate to the projects's root
 directory and run the following command:
 ```bash
@@ -185,7 +180,6 @@ Below are the benchmarks, captured on a MacBook Air M3 using the **run_benchmark
 For each measurement, 3 warm-up runs were performed, followed by 10 consecutive measurements. The mean and standard deviation were then calculated from these results. Both are represented in seconds and can be found in the following tables.
 
 ### Tiny Window Benchmarks (Median/Sorting Networks)
-***
 The following table presents benchmark results for sliding windows over input sequences containing no NaN or Infinity values. The ignoreNaNWindows property is set to false.
 <table>
 <tr><th>Input sequence length</th><th>Window size</th><th>Steps</th><th>Time taken (Mean)</th><th>Standard deviation</th></tr>
@@ -227,7 +221,6 @@ The following table presents measurements for sliding windows over an input sequ
 ***
 
 ### Big Window Benchmarks (Double-Heap Approach)
-***
 The following table presents benchmarks for larger window sizes, where the double-heap approach is used. The input sequence contains no NaN or Infinity values, and the ignoreNaNWindows property is set to false.
 <table>
 <tr><th>Input sequence length</th><th>Window size</th><th>Steps</th><th>Time taken (Mean)</th><th>Standard deviation</th></tr>
