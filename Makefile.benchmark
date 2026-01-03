@@ -1,0 +1,35 @@
+CC  = gcc
+CFLAGS  = -O3 -Wall -Iinclude
+LDFLAGS =
+
+SRC_DIR = src
+BENCHMARK_DIR    = benchmark
+OBJ_DIR = obj
+
+SRC = $(wildcard $(SRC_DIR)/*.c)
+OBJ = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC))
+
+BENCHMARK_SRC    = $(wildcard $(BENCHMARK_DIR)/*.c)
+BENCHMARK_OBJ    = $(patsubst $(BENCHMARK_DIR)/%.c, $(OBJ_DIR)/%.o, $(BENCHMARK_SRC))
+
+BENCHMARK_BIN    = $(BENCHMARK_DIR)/run_benchmark
+
+all: $(OBJ_DIR) $(BENCHMARK_BIN)
+
+$(OBJ_DIR):
+	mkdir -p $(OBJ_DIR)
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/%.o: $(BENCHMARK_DIR)/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BENCHMARK_BIN): $(OBJ) $(BENCHMARK_OBJ)
+	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
+
+clean:
+	rm -rf $(OBJ_DIR) $(BENCHMARK_BIN)
+
+.PHONY: all clean
+

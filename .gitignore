@@ -171,3 +171,5 @@ Makefile.testdebug
 /python/venv
 /python/.DS_STORE
 /test/run_tests
+/benchmark/run_benchmark
+Makefile.benchmarkdebug
