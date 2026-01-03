@@ -1,6 +1,6 @@
 #include "median.h"
 
-bool valid_window(double  *array, size_t length, size_t windowSize, size_t steps, double *result);
+static bool valid_window(double  *array, size_t length, size_t windowSize, size_t steps, double *result);
 static inline bool median_window_full(MedianWindow *window);
 static inline bool median_window_steps_reached(MedianWindow *window);
 static inline bool tiny_medianwindow_full(Tiny_MedianWindow *window);
@@ -72,7 +72,7 @@ bool sliding_tiny_medianwindow(double *restrict array, size_t length, size_t win
     return true;
 }
 
-bool valid_window(double *array, size_t length, size_t windowSize, size_t steps, double *result) {
+static bool valid_window(double *array, size_t length, size_t windowSize, size_t steps, double *result) {
     if((array == NULL) || (length == 0) || (result == NULL))
         return false;
 
