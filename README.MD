@@ -180,6 +180,8 @@ directory of this project, where the **run_benchmark** file is located. After th
                 <steps>
                 <ignoreNaNWindows>
 ```
+Important: With the exception of the lower (lowestPossibleValue) and upper (heighestPossibleValue) bounds of the randomly generated numbers, all input parameters are of type unsigned integer.
+
 To clean all files created by the above command run:
 ```bash
 make -f Makefile.benchmark clean
