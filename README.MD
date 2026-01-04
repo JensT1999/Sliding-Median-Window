@@ -23,7 +23,7 @@ It supports different strategies based on the size of the window:
 
 ## Installation
 ```bash
-git clone https://github.com/JensT1999/CSlidingWindowMedian.git
+git clone https://github.com/JensT1999/Sliding-Median-Window.git
 ```
 
 ## Usage
