@@ -225,6 +225,9 @@ static bool benchmark_start(size_t length, size_t nanValues, size_t infValues, d
             test_array_init_random_neginfs(inputSequence, &currentIndex, (infValues - posInfNums),
                                             spcNumbersIndizesArray);
         }
+
+        free(spcNumbersIndizesArray);
+        spcNumbersIndizesArray = NULL;
     }
 
 
