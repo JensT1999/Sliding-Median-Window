@@ -1,12 +1,19 @@
 # Sliding Median Window
+## Motivation and Explanation
+The motivation for this project came from my strong interest in processing data as efficiently as possible. Since conventional approaches, such as copying a subsequence and then calculating its median, are not the most optimal solution, it was necessary to explore alternative methods, particularly those that follow an incremental approach. In this context, I quickly discovered the double-heap approach for median computation.
+
+For the implementation in this project, I referred to established approaches such as Bottleneck. But what exactly is the double-heap approach? Simply, it involves two heaps - a max-heap and a min-heap. Conceptually, the max-heap represents the lower part of the window, while the min-heap represents the upper part.
+
+Since this approach introduces additional overhead for small windows, I decided to use a standard sorting method for smaller windows first, and then switched to median/sorting networks. Sorting networks are predetermined sequences of instructions for a fixed number of values, designed to sort them using the minimal number of operations. Median networks are a specialized variant that computes the median of a given sequence with the fewest instructions possible.
+
+The combination of both approaches ensures optimal performance across a wide range of window sizes.
+
 ## Overview
 
 This project implements a **sliding median window** with Python/Cython bindings.
 It supports different strategies based on the size of the window:
 - **Median/Sorting Networks** for tiny windows (size 2-8)
 - **Double-Heap Approach** for bigger windows
-
-This library allows efficient computation of the median over a sliding window in numerical sequences.
 
 ## Features
 - Sliding median computation for arbitrary window sizes
@@ -20,23 +27,26 @@ git clone https://github.com/JensT1999/CSlidingWindowMedian.git
 ```
 
 ## Usage
-Please note: Compiling the **sliding median window** expects using the GCC or clang compiler. Especially the MSVC compiler is not supported. <br> To compile properly you need to install GCC or clang from their official
-website.
+Please note: Compiling the **sliding median window** expects using the GCC or clang compiler. Especially the MSVC compiler is not supported.
+
+To compile properly you need to install GCC or clang from their official website.
 ### Python
-If you want to use the **sliding median window** in python you need to install setuptools and cython. <br>
+If you want to use the **sliding median window** in python you need to install setuptools and cython.
+
 To install both go to your python environment and type:
 ```bash
 pip install setuptools cython
 ```
 
 In Python the **sliding median window** works with NumPy arrays. This is the reason you have to install
-NumPy too by running the command:<br>
+NumPy too by running the command:
 ```bash
 pip install numpy
 ```
 
-After installing everything that is needed skip to the python directory of this project. <br>
-Note: Stay in your Python environment! (Also if you use a virtual python environment). <br>
+After installing everything that is needed skip to the python directory of this project.
+Note: Stay in your Python environment! (Also if you use a virtual python environment).
+
 Setup the Python binding by running the following command in the python directoy of this project:
 ```bash
 python setup.py build_ext --inplace
