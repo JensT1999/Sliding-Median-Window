@@ -19,10 +19,10 @@ typedef enum HeapType {
 } HeapType;
 
 typedef struct HeapNode {
-    double value; // 0 - 7
-    size_t position; // 8 - 15
-    struct HeapNode *next; // 16 - 23
-    HeapType type; // 24 - 27
+    double value;
+    size_t position;
+    struct HeapNode *next;
+    HeapType type;
     bool isNaN;
 } HeapNode;
 
