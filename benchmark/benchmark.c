@@ -262,31 +262,28 @@ static void test_array_init(size_t length, double lowestValue, double heighestVa
 static void test_array_init_random_nans(double *testArray, size_t *currentIndex, size_t num,
     size_t *spcNumbersIndizesArray) {
     for(size_t i = 0; i < num; i++) {
-        const size_t index = spcNumbersIndizesArray[i];
+        const size_t index = spcNumbersIndizesArray[*currentIndex];
         testArray[index] = NAN;
+        *currentIndex += 1;
     }
-
-    *currentIndex += num;
 }
 
 static void test_array_init_random_posinfs(double *testArray, size_t *currentIndex, size_t num,
     size_t *spcNumbersIndizesArray) {
     for(size_t i = 0; i < num; i++) {
-        const size_t index = spcNumbersIndizesArray[i];
+        const size_t index = spcNumbersIndizesArray[*currentIndex];
         testArray[index] = INFINITY;
+        *currentIndex += 1;
     }
-
-    *currentIndex += num;
 }
 
 static void test_array_init_random_neginfs(double *testArray, size_t *currentIndex, size_t num,
     size_t *spcNumbersIndizesArray) {
     for(size_t i = 0; i < num; i++) {
-        const size_t index = spcNumbersIndizesArray[i];
+        const size_t index = spcNumbersIndizesArray[*currentIndex];
         testArray[index] = -INFINITY;
+        *currentIndex += 1;
     }
-
-    *currentIndex += num;
 }
 
 static void fill_and_shuffle_spc_number_indizes_array(size_t length, size_t *spcNumbersIndizesArray) {
