@@ -44,10 +44,13 @@ static bool check_valid_ignoreNaNWindows(char *string, bool *result);
 static bool benchmark_start(size_t length, size_t nanValues, size_t infValues, double lowestValue,
     double heighestValue, size_t windowSize, size_t steps, bool ignoreNaNWindows);
 static void test_array_init(size_t length, double lowestValue, double heighestValue, double *dest);
-static void test_array_init_random_nans(double *testArray, size_t length, size_t num);
-static void test_array_init_random_posinfs(double *testArray, size_t length, size_t num);
-static void test_array_init_random_neginfs(double *testArray, size_t length, size_t num);
-static void test_array_count_free_spc_number_indizes(double *testArray, size_t length, size_t *count);
+static void test_array_init_random_nans(double *testArray, size_t *currentIndex, size_t num,
+    size_t *spcNumbersIndizesArray);
+static void test_array_init_random_posinfs(double *testArray, size_t *currentIndex, size_t num,
+    size_t *spcNumbersIndizesArray);
+static void test_array_init_random_neginfs(double *testArray, size_t *currentIndex, size_t num,
+    size_t *spcNumbersIndizesArray);
+static void fill_and_shuffle_spc_number_indizes_array(size_t length, size_t *spcNumbersArray);
 static bool result_array_init(size_t inputLength, size_t windowSize, size_t steps,
     size_t *resultLength, double **result);
 
@@ -192,15 +195,38 @@ static bool benchmark_start(size_t length, size_t nanValues, size_t infValues, d
         return false;
 
     double *inputSequence = (double* ) malloc(length * sizeof(double));
+    if(inputSequence == NULL)
+        return false;
     test_array_init(length, lowestValue, heighestValue, inputSequence);
-    if(nanValues > 0)
-        test_array_init_random_nans(inputSequence, length, nanValues);
 
-    if(infValues > 0) {
-        const size_t posInfNums = (infValues / 2);
-        test_array_init_random_posinfs(inputSequence, length, posInfNums);
-        test_array_init_random_neginfs(inputSequence, length, (infValues - posInfNums));
+    const size_t spcNumbersCombNum = (nanValues + infValues);
+    if(spcNumbersCombNum > length) {
+        free(inputSequence);
+        inputSequence = NULL;
+        return false;
     }
+
+    if(spcNumbersCombNum > 0) {
+        size_t *spcNumbersIndizesArray = (size_t* ) malloc(length * sizeof(size_t));
+        if(spcNumbersIndizesArray == NULL) {
+            free(inputSequence);
+            inputSequence = NULL;
+            return false;
+        }
+
+        fill_and_shuffle_spc_number_indizes_array(length, spcNumbersIndizesArray);
+        size_t currentIndex = 0;
+        if(nanValues > 0)
+            test_array_init_random_nans(inputSequence, &currentIndex, nanValues, spcNumbersIndizesArray);
+
+        if(infValues > 0) {
+            const size_t posInfNums = (infValues / 2);
+            test_array_init_random_posinfs(inputSequence, &currentIndex, posInfNums, spcNumbersIndizesArray);
+            test_array_init_random_neginfs(inputSequence, &currentIndex, (infValues - posInfNums),
+                                            spcNumbersIndizesArray);
+        }
+    }
+
 
     double *outputArray = NULL;
     size_t outputArrayLength = 0;
@@ -230,52 +256,45 @@ static void test_array_init(size_t length, double lowestValue, double heighestVa
     }
 }
 
-static void test_array_init_random_nans(double *testArray, size_t length, size_t num) {
-    size_t countSpcNumbers = 0;
-    test_array_count_free_spc_number_indizes(testArray, length, &countSpcNumbers);
-    const size_t freeIndizes = (length - countSpcNumbers);
-    assert(num <= freeIndizes);
+static void test_array_init_random_nans(double *testArray, size_t *currentIndex, size_t num,
+    size_t *spcNumbersIndizesArray) {
     for(size_t i = 0; i < num; i++) {
-        size_t index = (rand() % length);
-        while ((isnan(testArray[index])) || (isinf(testArray[index]))) {
-            index = (rand() % length);
-        }
-
+        const size_t index = spcNumbersIndizesArray[i];
         testArray[index] = NAN;
     }
+
+    *currentIndex += num;
 }
 
-static void test_array_init_random_posinfs(double *testArray, size_t length, size_t num) {
-    size_t countSpcNumbers = 0;
-    test_array_count_free_spc_number_indizes(testArray, length, &countSpcNumbers);
-    const size_t freeIndizes = (length - countSpcNumbers);
-    assert(num <= freeIndizes);
+static void test_array_init_random_posinfs(double *testArray, size_t *currentIndex, size_t num,
+    size_t *spcNumbersIndizesArray) {
     for(size_t i = 0; i < num; i++) {
-        size_t index = (rand() % length);
-        while ((isnan(testArray[index])) || (isinf(testArray[index]))) {
-            index = (rand() % length);
-        }
+        const size_t index = spcNumbersIndizesArray[i];
         testArray[index] = INFINITY;
     }
+
+    *currentIndex += num;
 }
 
-static void test_array_init_random_neginfs(double *testArray, size_t length, size_t num) {
-    size_t countSpcNumbers = 0;
-    test_array_count_free_spc_number_indizes(testArray, length, &countSpcNumbers);
-    const size_t freeIndizes = (length - countSpcNumbers);
-    assert(num <= freeIndizes);
+static void test_array_init_random_neginfs(double *testArray, size_t *currentIndex, size_t num,
+    size_t *spcNumbersIndizesArray) {
     for(size_t i = 0; i < num; i++) {
-        size_t index = (rand() % length);
-        while ((isnan(testArray[index])) || (isinf(testArray[index]))) {
-            index = (rand() % length);
-        }
+        const size_t index = spcNumbersIndizesArray[i];
         testArray[index] = -INFINITY;
     }
+
+    *currentIndex += num;
 }
 
-static void test_array_count_free_spc_number_indizes(double *testArray, size_t length, size_t *count) {
+static void fill_and_shuffle_spc_number_indizes_array(size_t length, size_t *spcNumbersIndizesArray) {
+    for(size_t i = 0; i < length; i++)
+        spcNumbersIndizesArray[i] = i;
+
     for(size_t i = 0; i < length; i++) {
-        *count += ((isnan(testArray[i]) || (isinf(testArray[i]))));
+        const size_t j = i + (rand() % (length - i));
+        const size_t tmpIndex = spcNumbersIndizesArray[i];
+        spcNumbersIndizesArray[i] = spcNumbersIndizesArray[j];
+        spcNumbersIndizesArray[j] = tmpIndex;
     }
 }
 
