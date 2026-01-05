@@ -633,6 +633,9 @@ static bool test_input_with_spc_numbers(size_t testArrayLength, size_t windowSiz
     test_array_init_random_posinfs(testArray, &currentIndex, posInfs, spcNumberIndizesArray);
     test_array_init_random_neginfs(testArray, &currentIndex, (numInfs - posInfs), spcNumberIndizesArray);
 
+    free(spcNumberIndizesArray);
+    spcNumberIndizesArray = NULL;
+
     double *resultArray_sliding = NULL;
     size_t resultArray_sliding_length = 0;
     result_array_init(testArrayLength,
