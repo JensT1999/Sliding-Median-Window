@@ -175,12 +175,12 @@ directory of this project, where the **run_benchmark** file is located. After th
                 <nanValueCount>
                 <infValueCount>
                 <lowestPossibleValue>
-                <heighestPossibleValue>
+                <highestPossibleValue>
                 <windowSize>
                 <steps>
                 <ignoreNaNWindows>
 ```
-Important: With the exception of the lower (lowestPossibleValue) and upper (heighestPossibleValue) bounds of the randomly generated numbers, all input parameters are of type unsigned integer.
+Important: With the exception of the lower (lowestPossibleValue) and upper (highestPossibleValue) bounds of the randomly generated numbers, all input parameters are of type unsigned integer.
 
 To clean all files created by the above command run:
 ```bash
