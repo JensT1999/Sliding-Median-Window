@@ -116,7 +116,7 @@ int main(void) {
     run_standard_tests();
     run_edge_case_tests_tiny_window();
     run_edge_case_tests_big_window();
-    // run_tests_normal_input();
+    run_tests_normal_input();
     run_tests_normal_spc_input_ignoring_nan();
     run_tests_normal_spc_input_not_ignoring_nan();
     return 0;
