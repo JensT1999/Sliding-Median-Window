@@ -27,7 +27,7 @@
 
 #define TEST_SEED 0xC0FFEE
 #define LOWEST_VALUE_NORMAL_INPUT_TEST -1000
-#define HEIGHEST_VALUE_NORMAL_INPUT_TEST 1000
+#define HIGHEST_VALUE_NORMAL_INPUT_TEST 1000
 #define EPSILON 1e-9
 
 #define TEST_ARRAY_SIZE_STD_TESTS 10
@@ -100,7 +100,7 @@ static void run_tests_normal_spc_input_not_ignoring_nan(void);
 static bool test_input_with_spc_numbers(size_t testArrayLength, size_t windowSize, size_t steps,
     bool ignoreNanWindows, size_t numNaNs, size_t numInfs);
 
-static void test_array_init(size_t length, double lowestValue, double heighestValue, double *dest);
+static void test_array_init(size_t length, double lowestValue, double highestValue, double *dest);
 static void test_array_init_random_nans(double *testArray, size_t *currentIndex, size_t num,
     size_t *spcNumbersIndizesArray);
 static void test_array_init_random_posinfs(double *testArray, size_t *currentIndex, size_t num,
@@ -126,7 +126,7 @@ static void run_standard_tests(void) {
     double testArray[TEST_ARRAY_SIZE_STD_TESTS];
     test_array_init(TEST_ARRAY_SIZE_STD_TESTS,
         LOWEST_VALUE_NORMAL_INPUT_TEST,
-        HEIGHEST_VALUE_NORMAL_INPUT_TEST,
+        HIGHEST_VALUE_NORMAL_INPUT_TEST,
         testArray);
 
     // All tests are independent of the outputArray, so see this as a dummy
@@ -149,6 +149,11 @@ static void run_standard_tests(void) {
 
     // Should return false because steps < 1
     assert(!sliding_medianwindow(testArray, TEST_ARRAY_SIZE_STD_TESTS, 2, 0, false, outputArray));
+
+    // Should return false because steps >= (arraySize - windowSize) -> (arraySize - windowSize) should
+    // mark the end of the sequence
+    assert(!sliding_medianwindow(testArray, TEST_ARRAY_SIZE_STD_TESTS, 2,
+        TEST_ARRAY_SIZE_STD_TESTS, false, outputArray));
 
     // Should return false because outputArray == NULL
     assert(!sliding_medianwindow(testArray, TEST_ARRAY_SIZE_STD_TESTS, 20, 1, false, NULL));
@@ -461,7 +466,7 @@ static bool test_normal_input(size_t testArrayLength, size_t windowSize, size_t 
         return false;
     test_array_init(testArrayLength,
         LOWEST_VALUE_NORMAL_INPUT_TEST,
-        HEIGHEST_VALUE_NORMAL_INPUT_TEST,
+        HIGHEST_VALUE_NORMAL_INPUT_TEST,
         testArray);
 
     double *resultArray_sliding = NULL;
@@ -616,7 +621,7 @@ static bool test_input_with_spc_numbers(size_t testArrayLength, size_t windowSiz
     double *testArray = (double* ) malloc(testArrayLength * sizeof(double));
     test_array_init(testArrayLength,
         LOWEST_VALUE_NORMAL_INPUT_TEST,
-        HEIGHEST_VALUE_NORMAL_INPUT_TEST,
+        HIGHEST_VALUE_NORMAL_INPUT_TEST,
         testArray);
 
     size_t *spcNumberIndizesArray = (size_t* ) malloc(testArrayLength * sizeof(size_t));
@@ -695,9 +700,9 @@ static bool test_input_with_spc_numbers(size_t testArrayLength, size_t windowSiz
 
 // Test Util Methods
 
-static void test_array_init(size_t length, double lowestValue, double heighestValue, double *dest) {
+static void test_array_init(size_t length, double lowestValue, double highestValue, double *dest) {
     for(size_t i = 0; i < length; i++) {
-        const double v = (lowestValue + (heighestValue - lowestValue) * ((double) rand() / (double) RAND_MAX));
+        const double v = (lowestValue + (highestValue - lowestValue) * ((double) rand() / (double) RAND_MAX));
         dest[i] = v;
     }
 }

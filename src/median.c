@@ -76,7 +76,7 @@ static bool valid_window(double *array, size_t length, size_t windowSize, size_t
     if((array == NULL) || (length == 0) || (result == NULL))
         return false;
 
-    if((windowSize > length) || (windowSize <= 1) || (steps == 0))
+    if((windowSize > length) || (windowSize <= 1) || (steps >= (length - windowSize)) || (steps == 0))
         return false;
 
     return true;

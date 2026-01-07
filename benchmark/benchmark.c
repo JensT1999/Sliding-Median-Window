@@ -42,8 +42,8 @@ static int64_t convert_str_to_int64_t(char *string, bool negative);
 static bool check_valid_ignoreNaNWindows(char *string, bool *result);
 
 static bool benchmark_start(size_t length, size_t nanValues, size_t infValues, double lowestValue,
-    double heighestValue, size_t windowSize, size_t steps, bool ignoreNaNWindows);
-static void test_array_init(size_t length, double lowestValue, double heighestValue, double *dest);
+    double highestValue, size_t windowSize, size_t steps, bool ignoreNaNWindows);
+static void test_array_init(size_t length, double lowestValue, double highestValue, double *dest);
 static void test_array_init_random_nans(double *testArray, size_t *currentIndex, size_t num,
     size_t *spcNumbersIndizesArray);
 static void test_array_init_random_posinfs(double *testArray, size_t *currentIndex, size_t num,
@@ -59,17 +59,17 @@ void difference_time_specs(struct timespec *spec1, struct timespec *spec2, struc
 int main(int argc, char *argv[]) {
     if((argc <= 1) || (argc > 9)) {
         printf("Please enter eight valid arguments:\n");
-        printf("(inputSequenceLength, nanValues, infValues, lowestRandomValue, heighestRandomValue) -> for the array\n");
+        printf("(inputSequenceLength, nanValues, infValues, lowestRandomValue, highestRandomValue) -> for the array\n");
         printf("(windowSize, steps, ignoreNaNWindows) -> for the window\n");
         return EXIT_FAILURE;
     }
 
     size_t inputSequenceLength = 0, nanValues = 0, infValues = 0;
     int64_t lowestPossibleValue = 0;
-    int64_t heighestPossibleValue = 0;
+    int64_t highestPossibleValue = 0;
     if((!check_unsigned_digit(argv[1], &inputSequenceLength)) || (!check_unsigned_digit(argv[2], &nanValues))
         || (!check_unsigned_digit(argv[3], &infValues)) || (!check_signed_digit(argv[4], &lowestPossibleValue))
-        || (!check_signed_digit(argv[5], &heighestPossibleValue))) {
+        || (!check_signed_digit(argv[5], &highestPossibleValue))) {
         printf("Please enter valid digits!\n");
         return EXIT_FAILURE;
     }
@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
                                                 nanValues,
                                                 infValues,
                                                 ((double) lowestPossibleValue),
-                                                ((double) heighestPossibleValue),
+                                                ((double) highestPossibleValue),
                                                 windowSize,
                                                 steps,
                                                 ignoreNaNWindows);
@@ -186,18 +186,18 @@ static bool check_valid_ignoreNaNWindows(char *string, bool *result) {
 }
 
 static bool benchmark_start(size_t length, size_t nanValues, size_t infValues, double lowestValue,
-    double heighestValue, size_t windowSize, size_t steps, bool ignoreNaNWindows) {
+    double highestValue, size_t windowSize, size_t steps, bool ignoreNaNWindows) {
     if(length == 0)
         return false;
     if((nanValues >= length) || (infValues >= length) || ((nanValues + infValues) >= length))
         return false;
-    if(lowestValue >= heighestValue)
+    if(lowestValue >= highestValue)
         return false;
 
     double *inputSequence = (double* ) malloc(length * sizeof(double));
     if(inputSequence == NULL)
         return false;
-    test_array_init(length, lowestValue, heighestValue, inputSequence);
+    test_array_init(length, lowestValue, highestValue, inputSequence);
 
     const size_t spcNumbersCombNum = (nanValues + infValues);
     if(spcNumbersCombNum > length) {
@@ -252,9 +252,9 @@ static bool benchmark_start(size_t length, size_t nanValues, size_t infValues, d
     return true;
 }
 
-static void test_array_init(size_t length, double lowestValue, double heighestValue, double *dest) {
+static void test_array_init(size_t length, double lowestValue, double highestValue, double *dest) {
     for(size_t i = 0; i < length; i++) {
-        const double v = (lowestValue + (heighestValue - lowestValue) * ((double) rand() / (double) RAND_MAX));
+        const double v = (lowestValue + (highestValue - lowestValue) * ((double) rand() / (double) RAND_MAX));
         dest[i] = v;
     }
 }
