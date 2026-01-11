@@ -54,7 +54,7 @@ static void fill_and_shuffle_spc_number_indizes_array(size_t length, size_t *spc
 static bool result_array_init(size_t inputLength, size_t windowSize, size_t steps,
     size_t *resultLength, double **result);
 
-void difference_time_specs(struct timespec *spec1, struct timespec *spec2, struct timespec *result);
+static void difference_time_specs(struct timespec *spec1, struct timespec *spec2, struct timespec *result);
 
 int main(int argc, char *argv[]) {
     if((argc <= 1) || (argc > 9)) {
@@ -189,7 +189,7 @@ static bool benchmark_start(size_t length, size_t nanValues, size_t infValues, d
     double highestValue, size_t windowSize, size_t steps, bool ignoreNaNWindows) {
     if(length == 0)
         return false;
-    if((nanValues >= length) || (infValues >= length) || ((nanValues + infValues) >= length))
+    if((nanValues > length) || (infValues > length) || ((nanValues + infValues) > length))
         return false;
     if(lowestValue >= highestValue)
         return false;
@@ -238,18 +238,21 @@ static bool benchmark_start(size_t length, size_t nanValues, size_t infValues, d
 
     struct timespec start, end, result;
     clock_gettime(CLOCK_MONOTONIC, &start);
-    sliding_medianwindow(inputSequence, length, windowSize, steps, ignoreNaNWindows, outputArray);
+    const bool success = sliding_medianwindow(inputSequence, length, windowSize,
+        steps, ignoreNaNWindows, outputArray);
     clock_gettime(CLOCK_MONOTONIC, &end);
 
-    difference_time_specs(&start, &end, &result);
-    const double timeTaken = (result.tv_sec + (result.tv_nsec / 1000000000.0));
-    printf("Time taken: %f\n", timeTaken);
+    if(success) {
+        difference_time_specs(&start, &end, &result);
+        const double timeTaken = (result.tv_sec + (result.tv_nsec / 1000000000.0));
+        printf("Time taken: %f\n", timeTaken);
+    }
 
     free(inputSequence);
     inputSequence = NULL;
     free(outputArray);
     outputArray = NULL;
-    return true;
+    return success;
 }
 
 static void test_array_init(size_t length, double lowestValue, double highestValue, double *dest) {
@@ -312,7 +315,7 @@ static bool result_array_init(size_t inputLength, size_t windowSize, size_t step
     return true;
 }
 
-void difference_time_specs(struct timespec *spec1, struct timespec *spec2, struct timespec *result) {
+static void difference_time_specs(struct timespec *spec1, struct timespec *spec2, struct timespec *result) {
     int64_t calculatedSeconds = (spec2->tv_sec - spec1->tv_sec);
     long calculatedNanoseconds = (spec2->tv_nsec - spec1->tv_nsec);
     if(calculatedNanoseconds < 0) {
